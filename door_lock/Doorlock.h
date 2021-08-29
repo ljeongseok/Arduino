@@ -5,10 +5,9 @@
 #include <Servo.h>
 #include <Button.h>
 
-class Button;
-
 class Doorlock: public MiniCom{
 protected:
+
     String input ="";       // 입력값 저장
     String inputStar  = ""; // 입력할 때 출력할 * 문자열
     String password = "";   // 도어락 비밀번호
@@ -23,12 +22,17 @@ protected:
     int led_pin;    // led 핀번호
     int servo_pin;  // servo 핀번호
     Servo lock;
-    int button_pin;
     
+    // simpletimer가 잘 되지않아 임시로 만든 타이머
+    int ptime =false;
+    int t1 =0;
+    int t2 =0;
+
+
 
 public:
     Doorlock(int serial_bps=115200, int lcd_addr=0x27);
-    // SimpleTimer& getTimer(){return timer;}
+    
     void init(int led_pin, int servo_pin);
     void readpassword();     // 비밀번호 가져오기     
     void setPassword();      // 새 비밀번호 만들기
@@ -36,8 +40,9 @@ public:
     void check();            // 비밀번호 체크
     void tick();             // 비프음
     void reset();            // 시간초과 리셋
-    
+    void run();
     int setTimeout(unsigned long time, timer_callback f);
+    
     
 
 };

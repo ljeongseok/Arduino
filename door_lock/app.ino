@@ -7,15 +7,15 @@ Keypad keypad(makeKeymap(keys),rowPins, colPins, ROWS,COLS);
 Button btn(2);
 Doorlock door;
 
-void setpassword(){
+// 초기 비밀번호 : A B C D
+void setPassword(){
     door.setPassword();
 }
 
-
 void setup(){
-    door.init(13,3);
+    door.init(13,3);    // 부저 핀 번호, 모터 핀 번호
     door.readpassword();
-    btn.setCallback(setpassword);
+    btn.setCallback(setPassword);
 }
 
 void loop(){

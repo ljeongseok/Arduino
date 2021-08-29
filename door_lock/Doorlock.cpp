@@ -13,7 +13,7 @@ void Doorlock::init(int led_pin, int servo_pin)
     lock.attach(servo_pin);
     print(0,"[[Door Lock]]");
     lock.write(0);
-    
+    offLcd();
 }
 
 void Doorlock::readpassword()
@@ -24,7 +24,6 @@ void Doorlock::readpassword()
 void Doorlock::setPassword()
 {
     tick();
-    print(1,"change password");
     bSetPassword = !bSetPassword;
     if(bSetPassword){   // 새 비밀번호 입력 시작
         onLcd();
@@ -32,7 +31,7 @@ void Doorlock::setPassword()
         inputStar="";
         bInput=true;
         print(1,inputStar.c_str());
-
+        
     } else{     // 새 비밀번호 입력 완료
         // ROM에 비밀번호 저장
         password = input;   // 비밀번호 갱신
@@ -40,36 +39,44 @@ void Doorlock::setPassword()
         bSetPassword = !bSetPassword;
         bInput=false;
         print(1,"");
+        offLcd();
         
     }
 }
 
-int Doorlock::setTimeout(unsigned long time, timer_callback f)
-{
-    return timer.setTimeout(time,f);
-}
+// int Doorlock::setTimeout(unsigned long time, timer_callback f)
+// {
+//     return timer.setTimeout(time,f);
+// }
 
 void Doorlock::process(char key)
 {
     tick();
     // timer = getTimer();
+    
     if (key == '*' && bInput == false){      // 키 입력 시작
         input = "";
         inputStar ="";
         bInput = true;
         // timerId = timer.setTimeout(5000,reset);
         onLcd();
-        
-    } else if(key == '#'){      // 키 입력 완료
-        // deleteTimer(timerId);
+        t2 = millis();
+        ptime = true;
+        print(1,"chance :",check_password);
+
+    } else if(key == '#' && bInput == true){      // 키 입력 완료
+        // timer.deleteTimer(timerId);
         bInput = false;
+        ptime = false;
         check();                // 마지막 처리
+        offLcd();        
         
     } else if(bInput){
         input += key;
         inputStar +="*";
         print(1,inputStar.c_str());
-        // restartTimer(timerId);
+        // timer.restartTimer(timerId);
+        t2 = millis();
     }
 }
 
@@ -92,10 +99,12 @@ void Doorlock::check()
         check_password--;
         print(1,"chance :",check_password);
         if(check_password == 0){
+            offLcd();
             print(1,"fail");
-            delay(5000);
+            delay(600000);
             print(1,"");
             check_password=3;
+            tick();
         }
     }
 }
@@ -105,7 +114,6 @@ void Doorlock::tick()
     digitalWrite(led_pin,HIGH);
     delay(100);
     digitalWrite(led_pin,LOW);
-    
 }
 
 void Doorlock::reset()
@@ -113,6 +121,22 @@ void Doorlock::reset()
     input = "";
     inputStar="";
     bInput = false;
+    ptime = false;
+    if (check_password<3){
+        print(1,"chance :",check_password);
+    } else print(1,"");
+    
     offLcd();
-    print(1,"");
 }
+
+void Doorlock::run()
+{
+    MiniCom::run();
+    if(ptime){
+        t1 = millis();
+        if(t1 - t2 > 5000){
+            reset();
+        }
+    }
+}
+
